@@ -1,4 +1,12 @@
-C Extension Example
-=========
+mruby-zlib
+==========
 
-This is an example gem which implements a C extension.
+Provides zlib compression for mruby.
+
+Example:
+
+    data = Zlib.deflate("foo")
+
+## License
+
+MIT

@@ -5,7 +5,9 @@ Provides zlib compression for mruby.
 
 Example:
 
-    data = Zlib.deflate("foo")
+    x = "foo"
+    y = Zlib.deflate(x)
+    z = Zlib.inflate(y)
 
 ## License
 

@@ -23,6 +23,7 @@ mrb_zlib_raise(mrb_state *mrb, z_streamp strm, int err)
   char msg[256];
   snprintf(msg, 256, "zlib error (%d): %s", err, strm->msg);
   mrb_raise(mrb, E_RUNTIME_ERROR, msg);
+  return mrb_nil_value();
 }
 
 static mrb_value

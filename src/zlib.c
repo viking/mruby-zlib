@@ -62,8 +62,8 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
       strm.avail_out = RSTRING_CAPA(value_result) - strm.total_out;
     }
     else if (res == Z_STREAM_END) {
-      result->len = strm.total_out;
-      *(result->ptr + result->len) = '\0';
+      result->as.heap.len = strm.total_out;
+      *(result->as.heap.ptr + result->as.heap.len) = '\0';
 
       res = deflateEnd(&strm);
       if (res != Z_OK) {
@@ -115,8 +115,8 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
       strm.avail_out = RSTRING_CAPA(value_result) - strm.total_out;
     }
     else if (res == Z_STREAM_END) {
-      result->len = strm.total_out;
-      *(result->ptr + result->len) = '\0';
+      result->as.heap.len = strm.total_out;
+      *(result->as.heap.ptr + result->as.heap.len) = '\0';
 
       res = inflateEnd(&strm);
       if (res != Z_OK) {

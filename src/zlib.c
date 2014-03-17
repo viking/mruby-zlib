@@ -48,9 +48,9 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
       deflateBound(&strm, RSTRING_LEN(value_data)));
   result = mrb_str_ptr(value_result);
 
-  strm.next_in = RSTRING_PTR(value_data);
+  strm.next_in = (Bytef *) RSTRING_PTR(value_data);
   strm.avail_in = RSTRING_LEN(value_data);
-  strm.next_out = RSTRING_PTR(value_result);
+  strm.next_out = (Bytef *) RSTRING_PTR(value_result);
   strm.avail_out = RSTRING_CAPA(value_result);
 
   while (1) {
@@ -58,7 +58,7 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
     if (res == Z_OK) {
       value_result = mrb_str_resize(mrb, value_result,
           RSTRING_CAPA(value_result) * 2);
-      strm.next_out = RSTRING_PTR(value_result) + strm.total_out;
+      strm.next_out = (Bytef *) RSTRING_PTR(value_result) + strm.total_out;
       strm.avail_out = RSTRING_CAPA(value_result) - strm.total_out;
     }
     else if (res == Z_STREAM_END) {
@@ -92,7 +92,7 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
   strm.zalloc = zlib_alloc;
   strm.zfree = zlib_free;
   strm.opaque = NULL;
-  strm.next_in = RSTRING_PTR(value_data);
+  strm.next_in = (Bytef *) RSTRING_PTR(value_data);
   strm.avail_in = RSTRING_LEN(value_data);
 
   res = inflateInit(&strm);
@@ -103,7 +103,7 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
   value_result = mrb_str_buf_new(mrb, RSTRING_LEN(value_data));
   result = mrb_str_ptr(value_result);
 
-  strm.next_out = RSTRING_PTR(value_result);
+  strm.next_out = (Bytef *) RSTRING_PTR(value_result);
   strm.avail_out = RSTRING_CAPA(value_result);
 
   while (1) {
@@ -111,7 +111,7 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
     if (res == Z_OK) {
       value_result = mrb_str_resize(mrb, value_result,
           RSTRING_CAPA(value_result) * 2);
-      strm.next_out = RSTRING_PTR(value_result) + strm.total_out;
+      strm.next_out = (Bytef *) RSTRING_PTR(value_result) + strm.total_out;
       strm.avail_out = RSTRING_CAPA(value_result) - strm.total_out;
     }
     else if (res == Z_STREAM_END) {

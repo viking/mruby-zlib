@@ -23,6 +23,7 @@ mrb_zlib_raise(mrb_state *mrb, z_streamp strm, int err)
   char msg[256];
   snprintf(msg, 256, "zlib error (%d): %s", err, strm->msg);
   mrb_raise(mrb, E_RUNTIME_ERROR, msg);
+  return mrb_nil_value();
 }
 
 static mrb_value
@@ -48,9 +49,9 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
       deflateBound(&strm, RSTRING_LEN(value_data)));
   result = mrb_str_ptr(value_result);
 
-  strm.next_in = RSTRING_PTR(value_data);
+  strm.next_in = (Bytef *) RSTRING_PTR(value_data);
   strm.avail_in = RSTRING_LEN(value_data);
-  strm.next_out = RSTRING_PTR(value_result);
+  strm.next_out = (Bytef *) RSTRING_PTR(value_result);
   strm.avail_out = RSTRING_CAPA(value_result);
 
   while (1) {
@@ -58,12 +59,12 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
     if (res == Z_OK) {
       value_result = mrb_str_resize(mrb, value_result,
           RSTRING_CAPA(value_result) * 2);
-      strm.next_out = RSTRING_PTR(value_result) + strm.total_out;
+      strm.next_out = (Bytef *) RSTRING_PTR(value_result) + strm.total_out;
       strm.avail_out = RSTRING_CAPA(value_result) - strm.total_out;
     }
     else if (res == Z_STREAM_END) {
-      result->len = strm.total_out;
-      *(result->ptr + result->len) = '\0';
+      result->as.heap.len = strm.total_out;
+      *(result->as.heap.ptr + result->as.heap.len) = '\0';
 
       res = deflateEnd(&strm);
       if (res != Z_OK) {
@@ -92,7 +93,7 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
   strm.zalloc = zlib_alloc;
   strm.zfree = zlib_free;
   strm.opaque = NULL;
-  strm.next_in = RSTRING_PTR(value_data);
+  strm.next_in = (Bytef *) RSTRING_PTR(value_data);
   strm.avail_in = RSTRING_LEN(value_data);
 
   res = inflateInit(&strm);
@@ -103,7 +104,7 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
   value_result = mrb_str_buf_new(mrb, RSTRING_LEN(value_data));
   result = mrb_str_ptr(value_result);
 
-  strm.next_out = RSTRING_PTR(value_result);
+  strm.next_out = (Bytef *) RSTRING_PTR(value_result);
   strm.avail_out = RSTRING_CAPA(value_result);
 
   while (1) {
@@ -111,12 +112,12 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
     if (res == Z_OK) {
       value_result = mrb_str_resize(mrb, value_result,
           RSTRING_CAPA(value_result) * 2);
-      strm.next_out = RSTRING_PTR(value_result) + strm.total_out;
+      strm.next_out = (Bytef *) RSTRING_PTR(value_result) + strm.total_out;
       strm.avail_out = RSTRING_CAPA(value_result) - strm.total_out;
     }
     else if (res == Z_STREAM_END) {
-      result->len = strm.total_out;
-      *(result->ptr + result->len) = '\0';
+      result->as.heap.len = strm.total_out;
+      *(result->as.heap.ptr + result->as.heap.len) = '\0';
 
       res = inflateEnd(&strm);
       if (res != Z_OK) {

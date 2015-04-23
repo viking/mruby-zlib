@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <zlib.h>
 
+#define WINDOW_BITS_DEFLATE 15
+#define WINDOW_BITS_GZIP    31
+#define WINDOW_BITS_AUTO    47
+
 static voidpf
 zlib_alloc(voidpf opaque, uInt n, uInt size)
 {
@@ -27,7 +31,7 @@ mrb_zlib_raise(mrb_state *mrb, z_streamp strm, int err)
 }
 
 static mrb_value
-mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
+mrb_zlib_compress(mrb_state *mrb, mrb_value self, int windowbits)
 {
   struct RString *result;
   mrb_value value_data, value_result = mrb_nil_value();
@@ -40,7 +44,8 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
   strm.zfree = zlib_free;
   strm.opaque = NULL;
 
-  res = deflateInit(&strm, Z_DEFAULT_COMPRESSION);
+  res = deflateInit2(&strm, Z_DEFAULT_COMPRESSION,
+      Z_DEFLATED, windowbits, 8, Z_DEFAULT_STRATEGY);
   if (res != Z_OK) {
     mrb_zlib_raise(mrb, &strm, res);
   }
@@ -81,6 +86,18 @@ mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
 }
 
 static mrb_value
+mrb_zlib_deflate(mrb_state *mrb, mrb_value self)
+{
+  return mrb_zlib_compress(mrb, self, WINDOW_BITS_DEFLATE);
+}
+
+static mrb_value
+mrb_zlib_gzip(mrb_state *mrb, mrb_value self)
+{
+  return mrb_zlib_compress(mrb, self, WINDOW_BITS_GZIP);
+}
+
+static mrb_value
 mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
 {
   struct RString *result;
@@ -96,7 +113,7 @@ mrb_zlib_inflate(mrb_state *mrb, mrb_value self)
   strm.next_in = (Bytef *) RSTRING_PTR(value_data);
   strm.avail_in = RSTRING_LEN(value_data);
 
-  res = inflateInit(&strm);
+  res = inflateInit2(&strm, WINDOW_BITS_AUTO);
   if (res != Z_OK) {
     mrb_zlib_raise(mrb, &strm, res);
   }
@@ -139,6 +156,7 @@ mrb_mruby_zlib_gem_init(mrb_state* mrb) {
 
   zlib_module = mrb_define_module(mrb, "Zlib");
   mrb_define_module_function(mrb, zlib_module, "deflate", mrb_zlib_deflate, ARGS_REQ(1));
+  mrb_define_module_function(mrb, zlib_module, "gzip", mrb_zlib_gzip, ARGS_REQ(1));
   mrb_define_module_function(mrb, zlib_module, "inflate", mrb_zlib_inflate, ARGS_REQ(1));
 }
 

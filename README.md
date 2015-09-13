@@ -1,3 +1,6 @@
+
+use https://github.com/iij/mruby-zlib
+
 mruby-zlib
 ==========
 
